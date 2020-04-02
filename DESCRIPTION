@@ -1,0 +1,15 @@
+Package: bayesplay
+Type: Package
+Title: Bayes playground
+Version: 0.0.1
+Author: Lincoln J Colling 
+Maintainer: Lincoln J Colling <Lincoln@Colling.net.nz>
+Description: This package just contains a bunch of functions for exploring Bayes factors.
+    The package was written as a teaching tool for the 2020 Advanced Research Methods 
+    course at the University of Sussex. Accuracy of the computed Bayes factors is not
+    guaranteed,  so it is not advisable to use this in actual research. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.2

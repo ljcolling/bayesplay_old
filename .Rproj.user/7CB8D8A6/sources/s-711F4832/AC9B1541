@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583215908614.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "AC9B1541",
+    "lastKnownWriteTime" : 1585330727,
+    "last_content_update" : 1585330727192,
+    "path" : "~/GitHub/r_packages/bayesplay/R/genericsish.r",
+    "project_path" : "R/genericsish.r",
+    "properties" : {
+        "cursorPosition" : "301,0",
+        "scrollLine" : "295"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

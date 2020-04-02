@@ -1,0 +1,7 @@
+tibble::tribble(~ID, ~QUESTION_1, ~QUESTION_2, ~QUESTION_3, ~GROUP,
+                "A", 1, 2, 3, "G1",
+                "B", 2, 2, 3, "G1",
+                "B", 3, 2, 3, "G1",
+                "B", 1, 4 , 3, "G2",
+                "B", 1, 2, 3, "G2",
+                "B", 1, 5, 3, "G3") -> DF
