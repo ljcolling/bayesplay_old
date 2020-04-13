@@ -192,6 +192,8 @@ loadpackages = function(){
   suppressMessages(require(IRdisplay))
   suppressMessages(require(broom))
   suppressMessages(require(glue))
+  suppressMessages(require(invgamma))
+  suppressMessages(require(metRology))
 
 }
 
@@ -230,7 +232,7 @@ plot_prior = function(prior,theta.range){
 }
 
 
-dt.scaled = function(x, ncp, scale, df){dt((ncp - x) / scale, df = df)}
+
 
 
 scenario1 = function(men,women){
