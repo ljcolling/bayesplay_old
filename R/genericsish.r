@@ -49,11 +49,12 @@ get.prior <- function(alt,theta.range){
 
 
 
-`*.likelihood` <-function(e1,e2){
-  theta.range = e2$theta.range
+
+`*.bp` <- function(e1,e2){
+  theta.range = e2@theta_range
 
   likelihood.func <- e1@func
-  prior.func <- e2$func
+  prior.func <- e2@func
 
   # normalise the pior
   if(theta.range[1] != theta.range[2]){
@@ -75,14 +76,16 @@ get.prior <- function(alt,theta.range){
     marginal = marginal,
     prior.normalising.constant = K)
 
-  new(Class = 'marginal',
-      data = data,
-      K = K,
-      lik = likelihood.func,
-      prior = prior.func,
-      theta.range = theta.range)
+#  new(Class = 'marginal',
+#      data = data,
+#      K = K,
+#      lik = likelihood.func,
+#      prior = prior.func,
+#      theta.range = theta.range)
 
 }
+
+
 
 # non-central t likelihood
 t.lik <- function(center,df){

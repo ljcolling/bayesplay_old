@@ -1,8 +1,9 @@
 likelihood <- setClass(
-  "likelihood",
+  Class = "likelihood",
   slots = list(
     data = "list",
     func = "function",
+    marginal = "function",
     desc = "character",
     dist.type = "character"
   )
@@ -10,7 +11,7 @@ likelihood <- setClass(
 
 # marginal
 marginal <- setClass(
-  "marginal",
+  Class = "marginal",
   slots = list(
     data = "list",
     K = "numeric",
@@ -18,4 +19,14 @@ marginal <- setClass(
     prior = "function",
     theta.range = "numeric"
   )
+)
+
+
+prior <- setClass(
+  Class = "prior",
+  slots = list(
+    theta_range = "numeric",
+    func = "function",
+    type = "character",
+    parameters = "list")
 )

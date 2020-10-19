@@ -1,0 +1,74 @@
+---
+title: "Example usage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayesplay)
+
+```
+
+In this vignette we'll implement an example from Dienes (2014). 
+
+```{r example data}
+md <- 5
+se <- 10
+```
+
+First we specify the data model:
+
+```{r define data model}
+data_model <- likelihood(distribution = "normal", center = md,  scale = se)
+
+data_model
+```
+
+Once the data model has been specified it's possible to access the likelihood 
+type and the parameters of the likelihood function.
+
+```{r get likelihood type}
+data_model$likelihood_type
+```
+
+
+```{r get likelihood parameters}
+data_model$parameters
+```
+
+```{r}
+h1_model <- prior(distribution = "uniform", min = 0, max = 20)
+h1_model
+```
+
+
+```{r}
+h0_model <- prior(distribution = "point", point = 0)
+h0_model
+```
+
+```{r}
+class(data_model) <- "bp"
+class(h1_model) <- "bp"
+m1 <- data_model * h1_model
+m1
+```
+
+```{r}
+m0 <- data_model * h0_model
+m0
+```
+
+```{r}
+m1$integral / m0$integral
+```
