@@ -5,13 +5,14 @@ likelihood <- setClass(
     func = "function",
     marginal = "function",
     desc = "character",
-    dist.type = "character"
+    dist.type = "character",
+    plot = "list"
   )
 )
 
 # marginal
 marginal <- setClass(
-  Class = "marginal",
+  Class = "predictive",
   slots = list(
     data = "list",
     K = "numeric",
@@ -28,5 +29,8 @@ prior <- setClass(
     theta_range = "numeric",
     func = "function",
     type = "character",
+    plot = 'list',
     parameters = "list")
 )
+
+setClassUnion("bayesplay",c("likelihood","prior"))

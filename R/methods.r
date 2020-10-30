@@ -1,3 +1,4 @@
+
 setMethod("show",
           "likelihood",
           function(object) {
@@ -7,7 +8,7 @@ setMethod("show",
           })
 
 setMethod("show",
-          "marginal",
+          "predictive",
           function(object) {
             cat("Object of class", class(object), "\n")
             cat("Parameter range: from ",
@@ -49,13 +50,13 @@ setMethod("names", signature = "likelihood",
           })
 
 
-setMethod("$", signature = "marginal",
+setMethod("$", signature = "predictive",
           function(x, name) {
             returnval = x@data[[name]]
             return(returnval)
           })
 
-setMethod("names", signature = "marginal",
+setMethod("names", signature = "predictive",
           function(x) {
             return(names(x@data))
           })

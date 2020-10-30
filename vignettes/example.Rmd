@@ -16,7 +16,8 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(bayesplay)
-
+library(ggplot2)
+library(tidyverse)
 ```
 
 In this vignette we'll implement an example from Dienes (2014). 
@@ -46,6 +47,13 @@ data_model$likelihood_type
 data_model$parameters
 ```
 
+You can also plot the likelihood.
+
+```{r}
+plot(data_model) + xlim(c(-30,40))
+```
+
+
 ```{r}
 h1_model <- prior(distribution = "uniform", min = 0, max = 20)
 h1_model
@@ -58,8 +66,7 @@ h0_model
 ```
 
 ```{r}
-class(data_model) <- "bp"
-class(h1_model) <- "bp"
+
 m1 <- data_model * h1_model
 m1
 ```
@@ -70,5 +77,167 @@ m0
 ```
 
 ```{r}
-m1$integral / m0$integral
+m1 / m0
+```
+
+
+```{r}
+
+
+plot(data_model) + xlim(c(-30,50))
+
+```
+
+
+```{r}
+
+data_model1 <- likelihood(distribution = "normal", center = 0,  scale = 1)
+data_model2 <- likelihood(distribution = "normal", center = 0,  scale = 2)
+
+ggplot2::ggplot() + geom_bayesplay(data_model1, aes(color = "narrow")) + geom_bayesplay(data_model2, aes(color = "wide")) + xlim(-10,10) + scale_color_manual(values = c("narrow" = "red", "wide" = "blue"), name = NULL)
+```
+```{r}
+# define a beta prior
+h1_model <- prior(distribution = "beta", shape1 = 3, shape2 = 3)
+h0_model <- prior(distribution = "point", point =  0.5)
+```
+
+```{r}
+data_model <- likelihood("binomial", successes = 2, trials = 10)
+```
+
+```{r}
+(data_model * h0_model) / (data_model * h1_model)
+```
+
+```{r}
+integrate(data_model * h0_model) / integrate(data_model * h1_model)
+```
+
+
+```{r}
+data_model <- likelihood("binomial", successes = 2, trials = 10)
+
+
+h1_model <- prior(distribution = "beta", shape1 = 3, shape2 = 3)
+h0_model <- prior(distribution = "point", point =  0.5)
+
+integrate(data_model * h0_model) / integrate(data_model * h1_model)
+```
+
+
+```{r}
+
+#marginal <- function(x){
+#  data_model <- likelihood("binomial", successes = x, trials = 10)
+#  h1_model <- prior(distribution = "point", point = .5)
+#
+#  integrate(data_model * h1_model)
+#}
+
+#purrr::map_df(seq(0,10,1), function(x) tibble::tibble(x = x, y = marginal(x))) %>% ggplot(aes(x = x, y = y)) + #geom_point() + geom_line()
+
+
+data_model <- likelihood("binomial", successes = 2, trials = 10)
+prior <- prior(distribution = "beta", shape1 = 3, shape2 = 3)
+observations <- seq(0,10,1)
+
+marginal(likelihood =  data_model, prior = prior, new_obs = seq(0,10,1)) %>% ggplot(aes(x = successes, y = y)) + geom_point()
+
+
+data_model * prior
+
+
+```
+
+
+```{r}
+
+N = 50
+mean = 10
+sd = 4
+prior_mean = 5
+prior_sd = 100
+
+sample_data = as.numeric(mean + sd * scale(rnorm(n = N, 0, 1)))
+
+sum(sample_data)
+N * mean
+
+
+normal_post_conj <- function(mean, sd, N, prior_mean, prior_sd){
+  
+  posterior_mean = (1 / (((1)/(prior_sd^2)) + ((N)/(sd^2)))) * ( ((prior_mean)/(prior_sd^2)) + ((sum(N * mean))/(sd^2)))
+  posterior_se = sqrt((((1/(prior_sd^2)) + (N/(sd^2))))^-1)
+
+  list(data = list(mean = mean, se = sd / sqrt(N)),
+       posterior = list(mean = posterior_mean, se = posterior_se), 
+       prior = list(mean = prior_mean, sd = prior_sd))
+  
+}
+
+normal_post_conj(mean, sd, N, prior_mean, prior_sd)
+
+
+posterior_mean = (1 / (((1)/(prior_sd^2)) + ((N)/(sd^2)))) * ( ((prior_mean)/(prior_sd^2)) + ((sum(sample_data))/(sd^2)))
+posterior_se = sqrt((((1/(prior_sd^2)) + (N/(sd^2))))^-1)
+
+data_model <- likelihood("normal", mean, sd/sqrt(N))
+
+prior <- prior(distribution = "normal",prior_mean,prior_sd)
+null <- prior("point")
+# Now plot a posterior
+ggplot() + geom_function(fun = function(theta) (data_model * prior)$marginal(theta) / integrate(data_model * prior),
+                         aes(color = "blue", group = "1")) + xlim(-15,15) + 
+  geom_vline(xintercept = 10) + 
+  geom_function(fun = dnorm, args = c(mean = posterior_mean,sd = posterior_se), aes(color = "red", group = "2")) + 
+  scale_color_manual(values = c("blue" = "blue", "red" = "red"),
+                     labels = c("blue" = "bayesplay", "red" = "conjugate"),
+                     name = NULL)
+```
+
+
+```{r}
+int <- function(theta) (data_model * prior)$marginal(theta) / integrate(data_model * prior)
+an <- function(theta) dnorm(theta, mean = posterior_mean, sd = posterior_se)
+```
+
+```{r}
+data_model <- likelihood("binomial", successes = 2, trials = 10)
+prior <- prior(distribution = "beta", shape1 = 3, shape2 = 3)
+
+
+ggplot() + geom_function(fun = function(theta) (data_model * prior)$marginal(theta) / integrate(data_model * prior) )
+
+```
+
+
+
+
+
+TODO LIST
+
+Add functions for calculating posteriors with conjugate priors for a couple of 
+different models (normal and binomial, and anything else easy)
+
+Make sure that one side priors are working properly!
+```{r}
+
+
+n = 10
+mean = 10
+sd = 5
+
+
+data_model <- likelihood("student_t", n = n, d = mean/sd)
+
+#data_model <- student_t.likelihood(mean / sd, n)
+
+
+h1 <- prior("cauchy", location = 0, scale = 1)
+h0 <- prior("point", 0)
+
+integrate(data_model * h1)  / integrate(data_model * h0) 
+
+BayesFactor::ttest.tstat(t = mean / (sd / sqrt(n)), n1 =  n, rscale = 1, simple = T)[[1]] 
 ```

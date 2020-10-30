@@ -1,18 +1,32 @@
 # plot generic for likelihood
 
-plot.likelihood <- function(x, theta,...) {
-  if (missing(theta)){stop("You must enter a theta range!")}
-  theta <- theta
-  likelihood <- suppressWarnings(expr =  x@func(theta = theta)) # suppress warning from t dist accuracy
-  df <- tibble(theta = theta, likelihood = likelihood)
+#' Title
+#'
+#' @param x
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot.bayesplay <- function(x) {
+  ggplot2::ggplot() +  ggplot2::geom_function(fun = x@plot$fun,
+                            args = x@plot$params, colour = "black")
+}
 
-  if(x@dist.type == "continuous"){
-    p <- ggplot(data = df, aes(x = theta, y = likelihood)) + geom_line(na.rm = T) + theme_minimal()
-  }
-  if(x@dist.type == "discrete"){
-    p <- ggplot(data = df, aes(x = theta, y = likelihood)) + geom_point(na.rm = T) + theme_minimal()
-  }
-  return(p)
+
+#' Title
+#'
+#' @param x
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+geom_bayesplay <- function(x,...){
+  ggplot2::geom_function(fun = x@plot$fun,
+                         args = x@plot$params, ...)
+
 }
 
 # as_tibble for likelihood
@@ -49,8 +63,16 @@ get.prior <- function(alt,theta.range){
 
 
 
-
-`*.bp` <- function(e1,e2){
+#' Title
+#'
+#' @param e1
+#' @param e2
+#'
+#' @return
+#' @export
+#'
+#' @examples
+`*.bayesplay` <-function(e1,e2){
   theta.range = e2@theta_range
 
   likelihood.func <- e1@func
@@ -58,14 +80,14 @@ get.prior <- function(alt,theta.range){
 
   # normalise the pior
   if(theta.range[1] != theta.range[2]){
-    K = suppressWarnings(1 / integrate(f = prior.func, lower = theta.range[1], upper = theta.range[2])$value)
+    K = suppressWarnings(1 / stats::integrate(f = prior.func, lower = theta.range[1], upper = theta.range[2])$value)
   } else{
     K = 1
   }
   marginal <- function(theta){suppressWarnings(likelihood.func(theta = theta) * (K * prior.func(theta = theta)))}
 
   if(theta.range[1] != theta.range[2]){
-    alt.val <- suppressWarnings(integrate(marginal,theta.range[1],theta.range[2])$value)
+    alt.val <- suppressWarnings(stats::integrate(marginal,theta.range[1],theta.range[2])$value)
   } else {
     alt.val <- marginal(theta.range[[1]])
   }
@@ -76,15 +98,28 @@ get.prior <- function(alt,theta.range){
     marginal = marginal,
     prior.normalising.constant = K)
 
-#  new(Class = 'marginal',
-#      data = data,
-#      K = K,
-#      lik = likelihood.func,
-#      prior = prior.func,
-#      theta.range = theta.range)
+  new(Class = 'predictive',
+      data = data,
+      K = K,
+      lik = likelihood.func,
+      prior = prior.func,
+      theta.range = theta.range)
 
 }
 
+
+#' Title
+#'
+#' @param e1
+#' @param e2
+#'
+#' @return
+#' @export
+#'
+#' @examples
+`/.predictive` <- function(e1, e2){
+  e1@data$integral / e2@data$integral
+}
 
 
 # non-central t likelihood
@@ -311,5 +346,31 @@ scenario1 = function(men,women){
   glue::glue("Comparing H1 (normal) to H0 (interval) gives {round(B4,2)}\n\n") %>% cat()
   glue::glue("Comparing H1 (uniform) to H1 (normal) gives {round(B5,2)}\n\n") %>% cat()
 
+}
+
+
+#' Title
+#'
+#' @param x
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+integrate <- function (x, ...) {
+  UseMethod("integrate", x)
+}
+
+#' Title
+#'
+#' @param x
+#'
+#' @return
+#' @export
+#'
+#' @examples
+integrate.predictive <- function(x){
+  x$integral
 }
 

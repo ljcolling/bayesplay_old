@@ -1,58 +1,78 @@
 
-`%||%` <- function(x, y) { # nolint
-  if (purrr::is_empty(x)) y else x
-}
 
-likelihood <- function(distribution, ...) {
-  parameters <- as.list(match.call(expand.dots = TRUE))
+#'
+#' @param distribution
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+likelihood <- function(...) {
+
+  cl <- match.call()
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("distribution"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+
+  parameters <- as.list(match.call(expand.dots = FALSE))
 
   distribution <- paste0(parameters$distribution %||%
     "normal", ".likelihood")
 
-  lik_fun <- purrr::partial(.f = rlang::as_function(distribution), ...)
+
+
+  lik_fun <- purrr::partial(.f = rlang::as_function(distribution),...)
 
   return(lik_fun())
 }
 
 
 
-student_t.likelihood <- function(...) { # nolint
+#' Title
+#'
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+student_t.likelihood <- function(d,n) { # nolint
 
 
-  parameters <- as.list(match.call(expand.dots = TRUE))
-  center <- parameters$center
-  df <- parameters$df
-  scale <- parameters$scale %||% 1
 
-  if (scale == 1) {
+
+  # TODO:
+  # Need a way to deal with
+  # scaled and shifted t distributions
+  #parameters <- as.list(match.call(expand.dots = TRUE))
+  #center <- parameters$center
+  #df <- parameters$df
+  #scale <- parameters$scale %||% 1
+    scale = 1
+
     lik_type <- "non-central t"
     lik_func <- function(theta) {
-      dt(sqrt(df + 1) * center, df, sqrt(df + 1) * theta)
+      dt(x = sqrt(n) * d, df = n - 1, ncp = sqrt(n) * theta)
     }
-    params <- list(center = center, df = df)
-    desc <- paste0("Parameters\nCenter: ", params$center, "\ndf: ", params$df)
-  } else {
-    lik_type <- "Scaled and shifted t"
-    lik_func <- function(theta) {
-      dt((center - theta) / scale, df = df)
-    }
-    params <- list(center = center, scale = scale, df = df)
-    desc <- paste0(
-      "Parameters\nCenter: ", params$center, "\nScale: ",
-      params$scale, "\ndf: ", params$df
-    )
-  }
+    params <- list(d = d, n = n)
+    desc <-""# paste0("Parameters\nCenter: ", params$center, "\ndf: ", params$df)
 
   new(
     Class = "likelihood",
-    data = list(
-      lik.type = lik_type,
-      parameters = params
-    ),
-    func = lik.func,
+    data = list(likelihood_type = "student_t",
+                parameters = params),
+    func = lik_func,
+    marginal = lik_func,
     desc = desc,
-    dist.type = "continuous"
+    dist.type = "continuous",
+    plot = list(
+      fun = "dt",
+      params = list(d = d,
+                    n = n)
+    )
   )
+
 }
 
 
@@ -74,8 +94,54 @@ normal.likelihood <- function(center, scale) { # nolint
     func = lik_func,
     marginal = marginal,
     desc = desc,
-    dist.type = "continuous"
+    dist.type = "continuous",
+    plot = list(
+      fun = "dnorm",
+      params = list(mean = center,
+                    sd = scale)
+    )
   )
+}
+
+#' Title
+#'
+#' @param successes
+#' @param trials
+#'
+#' @return
+#' @export
+#'
+#' @examples
+binomial.likelihood <- function(successes, trials){
+
+  lik_func <- function(theta){
+    dbinom(x = successes, size = trials, prob = theta)
+  }
+
+  marginal <- function(theta){
+    dbinom(x = successes, size = trials, prob = theta)
+  }
+
+  params <- list(successes = successes, trials = trials)
+
+  desc <- paste0(""
+  )
+
+  new(
+    Class = "likelihood",
+    data = list(likelihood_type = "binomial", parameters = params),
+    func = lik_func,
+    marginal = marginal,
+    desc = desc,
+    dist.type = "continuous",
+    plot = list(
+      fun = "dbinom",
+      params = list(x = successes,
+                    size =  trials)
+    )
+  )
+
+
 }
 
 
@@ -85,77 +151,16 @@ normal.likelihood <- function(center, scale) { # nolint
 # bayesplay::plot.likelihood(b, theta = seq(-20, 20, .01))
 
 
-# prior dispatch function
-prior <- function(distribution, ...) {
-  parameters <- as.list(match.call(expand.dots = TRUE))
-
-  range <- parameters$range %||% c(-Inf, Inf) # nolint
-
-  # prior function needs parameters for
-  # distribution - normal, student_t, beta, cauchy, uniform, point
-  # parameters - parameters for the distributions
-  # range_of_support :: for one tailed etc
-
-  distribution <- paste0(parameters$distribution %||%
-    "uniform", ".prior")
-
-  lik_fun <- purrr::partial(
-    .f = rlang::as_function(distribution),
-    range = range, ...
-  )
-
-  return(lik_fun())
-}
-
-
-# functions for different prior distributions
-normal.prior <- function() {} # nolint
-
-student_t.prior <- function() {} # nolint
-
-beta.prior <- function() {} # nolint
-
-cauchy.prior <- function() {} # nolint
-
-uniform.prior <- function(min, max, range) { # nolint
-
-  new(
-    Class = "prior",
-    theta_range = range,
-    func = eval(parse(
-      text =
-        (paste0(
-          "function(theta) dunif(x = theta, min = ",
-          min, ", max = ",
-          max, ")"
-        ))
-    )),
-    type = "uniform",
-    parameters = list(min = min, max = max)
-  )
-}
-
-point.prior <- function(range, point = 0) { # nolint
-
-  new(
-    Class = "prior",
-    theta_range = c(point,point),
-    func = eval(parse(
-      text =
-        (paste0(
-          "function(theta) ifelse(theta == ",point,", 1, 0)"
-        ))
-    )),
-    type = "point",
-    parameters = list(point = point)
-
-  )
-
-}
-
-
 # write a 'compare' function that takes two marginals and a
 # range of observations
 
 
 # write a predict function that takes a new parameter and generates a bf?!
+
+# TODO: Include function for calculating posteriors....
+# Compare posteriors generated from function
+# Together will posteriors generated
+# Using conjugate priors
+# And posteriors using estimate... using Greta
+# Or someting similar in Julia
+
